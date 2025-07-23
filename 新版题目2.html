@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>德曦中医 - 专业体质辨识系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#8B4513',       // 深棕色（中医主色调）
+                        secondary: '#D2B48C',     // 棕黄色
+                        light: '#F9F5EB',         // 米白色
+                        dark: '#2D2320',          // 深褐色
+                    },
+                    fontFamily: {
+                        sans: ['Noto Serif SC', 'serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .section-border {
+                @apply border border-secondary border-opacity-30 rounded-lg;
+            }
+            .traditional-bg {
+                @apply bg-light bg-opacity-50;
+            }
+            .btn-hover {
+                @apply hover:shadow-md transition-all duration-200;
+            }
+        }
+    </style>
+</head>
+<body class="traditional-bg min-h-screen">
+    <!-- 头部 -->
+    <header class="bg-primary text-white py-4 px-6 shadow-md">
+        <div class="container mx-auto">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold">
+                    <i class="fa fa-heartbeat mr-2"></i>德曦中医
+                </h1>
+                <p class="text-sm opacity-90 mt-1">以人为本，以德为先 | 看名医，用好药</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- 介绍部分 -->
+        <div id="intro" class="mb-8 bg-white p-6 rounded-lg shadow-md">
+            <div class="text-center">
+                <h2 class="text-xl font-bold text-dark mb-4">中医体质辨识</h2>
+                <p class="mb-6">本测试基于《中医体质分类与判定》标准，通过个性化问题，帮您精准判断体质类型，并提供中医调理建议。</p>
+                <div class="text-left text-sm text-gray-600 mb-6 bg-light p-4 rounded">
+                    <p class="font-medium mb-2">注意事项：</p>
+                    <ul class="list-disc pl-5 space-y-1">
+                        <li>请根据过去3个月内的身体状况如实回答</li>
+                        <li>体质辨识结果仅供参考，不能替代专业中医诊断</li>
+                        <li>建议结合线下中医问诊获得更准确结论</li>
+                    </ul>
+                </div>
+                
+                <!-- 性别和年龄选择 -->
+                <div class="mb-6 text-left">
+                    <h3 class="font-medium mb-3">请选择您的性别和年龄：</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block mb-2">性别</label>
+                            <div class="flex space-x-4">
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="gender" value="male" class="form-radio h-5 w-5 text-primary" checked>
+                                    <span class="ml-2">男</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="gender" value="female" class="form-radio h-5 w-5 text-primary">
+                                    <span class="ml-2">女</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block mb-2">年龄</label>
+                            <select id="ageGroup" class="w-full p-2 border border-secondary rounded-md">
+                                <option value="18-30">18-30岁</option>
+                                <option value="31-45">31-45岁</option>
+                                <option value="46-60">46-60岁</option>
+                                <option value="60+">60岁以上</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="startBtn" class="bg-primary text-white py-3 px-8 rounded-md hover:bg-opacity-90 transition-all inline-flex items-center btn-hover">
+                    <i class="fa fa-arrow-right mr-2"></i>开始测试
+                </button>
+            </div>
+        </div>
+
+        <!-- 问卷部分 -->
+        <div id="questionnaire" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-dark">体质测试</h2>
+                <div class="text-sm bg-secondary bg-opacity-30 px-3 py-1 rounded-full">
+                    <span id="currentQuestion">1</span>/<span id="totalQuestions">36</span>
+                </div>
+            </div>
+            
+            <div id="questionCard" class="bg-white rounded-lg shadow-md p-6 mb-4 transition-all duration-300 hover:shadow-lg">
+                <h3 id="questionText" class="text-lg font-medium mb-4"></h3>
+                <div id="options" class="space-y-2"></div>
+            </div>
+            
+            <div class="flex justify-between mt-6">
+                <button id="prevBtn" class="bg-primary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition-all hidden btn-hover">
+                    <i class="fa fa-arrow-left mr-2"></i>上一题
+                </button>
+                <button id="nextBtn" class="bg-primary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition-all btn-hover">
+                    <i class="fa fa-arrow-right mr-2"></i>下一题
+                </button>
+                <button id="submitBtn" class="bg-primary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition-all hidden btn-hover">
+                    <i class="fa fa-check mr-2"></i>提交结果
+                </button>
+            </div>
+        </div>
+
+        <!-- 结果部分 -->
+        <div id="result" class="hidden bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-bold text-dark mb-6 text-center">您的体质分析报告</h2>
+            
+            <div id="mainConstitution" class="mb-8 p-4 border-l-4 border-primary bg-light rounded">
+                <h3 class="text-lg font-bold mb-2">主要体质：<span id="mainType" class="text-primary"></span></h3>
+                <p id="mainDesc" class="mb-4"></p>
+                <div id="mainSuggest" class="bg-white p-3 rounded shadow-sm">
+                    <h4 class="font-bold mb-2">调理建议：</h4>
+                    <ul id="mainAdvice" class="list-disc pl-5 space-y-1"></ul>
+                </div>
+            </div>
+            
+            <div id="secondaryConstitutions" class="mb-8">
+                <h3 class="text-lg font-bold mb-4">兼夹体质：</h3>
+                <div id="secondaryTypes" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+            </div>
+            
+            <div class="mb-8 p-4 bg-light rounded">
+                <h4 class="font-bold mb-2">体质辨识说明：</h4>
+                <p class="text-sm text-gray-600">本结果基于您的回答生成，反映您当前的体质倾向。中医体质可随生活方式改变，建议定期检测。</p>
+            </div>
+            
+            <button id="restartBtn" class="bg-primary text-white py-2 px-4 rounded-md hover:bg-opacity-90 transition-all mx-auto block btn-hover">
+                <i class="fa fa-refresh mr-2"></i>重新测试
+            </button>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-dark text-white py-6 px-6 mt-12">
+        <div class="container mx-auto text-center text-sm">
+            <p>德曦中医 © 2023 | 以人为本，以德为先 | 看名医，用好药</p>
+            <p class="mt-2">本测试仅供参考，不构成医疗建议</p>
+        </div>
+    </footer>
+
+</body>
+<script>
+    // 体质数据（基于《中医体质分类与判定》标准）
+    const constitutionData = {
+        '平和质': {
+            desc: "阴阳气血调和，以体态适中、面色红润、精力充沛等为主要特征。",
+            advice: [
+                "饮食均衡，避免过食生冷、油腻、辛辣",
+                "规律作息，保持充足睡眠",
+                "坚持适度运动，如太极拳、八段锦",
+                "保持心态平和，避免情绪大起大落"
+            ],
+            color: '#8B4513'
+        },
+        '阳虚质': {
+            desc: "阳气不足，以畏寒怕冷、手足不温等虚寒表现为主要特征。",
+            advice: [
+                "多食温阳食物，如羊肉、韭菜、生姜、桂圆",
+                "避免生冷食物，如冷饮、生鱼片、苦瓜",
+                "注意保暖，尤其腰腹、背部及下肢",
+                "适当进行有氧运动，如慢跑、快走"
+            ],
+            color: '#D84315'
+        },
+        '阴虚质': {
+            desc: "阴液亏少，以口燥咽干、手足心热等虚热表现为主要特征。",
+            advice: [
+                "多食滋阴润燥食物，如银耳、百合、梨、桑葚",
+                "避免辛辣燥热食物，如辣椒、花椒、羊肉",
+                "保持环境湿润，避免熬夜",
+                "选择静中有动的运动，如瑜伽、太极"
+            ],
+            color: '#EC407A'
+        },
+        '气虚质': {
+            desc: "元气不足，以疲乏、气短、自汗等为主要特征。",
+            advice: [
+                "多食补气食物，如山药、黄芪、党参、鸡肉",
+                "避免过度劳累，注意休息",
+                "可进行温和运动，如散步、八段锦",
+                "按摩足三里、气海、关元等穴位"
+            ],
+            color: '#FB8C00'
+        },
+        '痰湿质': {
+            desc: "痰湿凝聚，以形体肥胖、腹部肥满、口黏苔腻等为主要特征。",
+            advice: [
+                "饮食清淡，多食健脾利湿食物，如薏米、赤小豆、冬瓜",
+                "避免肥甘厚味，如油炸食品、甜食",
+                "增加运动量，如游泳、爬山、慢跑",
+                "保持居住环境干燥通风"
+            ],
+            color: '#FDD835'
+        },
+        '湿热质': {
+            desc: "湿热内蕴，以面垢油光、口苦、苔黄腻等为主要特征。",
+            advice: [
+                "多食清热利湿食物，如绿豆、苦瓜、芹菜、马齿苋",
+                "避免辛辣、油炸、甜食",
+                "保持皮肤清洁，规律作息",
+                "可选择中高强度运动，如跑步、篮球"
+            ],
+            color: '#43A047'
+        },
+        '血瘀质': {
+            desc: "血行不畅，以肤色晦黯、舌质紫黯等血瘀表现为主要特征。",
+            advice: [
+                "多食活血化瘀食物，如山楂、桃仁、玫瑰花",
+                "避免寒凉食物，注意保暖",
+                "适当运动促进血液循环，如舞蹈、太极拳",
+                "保持心情舒畅，避免抑郁"
+            ],
+            color: '#7B1FA2'
+        },
+        '气郁质': {
+            desc: "气机郁滞，以神情抑郁、忧虑脆弱等为主要特征。",
+            advice: [
+                "多食行气食物，如陈皮、佛手、萝卜、柑橘",
+                "增加社交活动，培养兴趣爱好",
+                "可选择户外有氧运动，如散步、登山",
+                "按摩太冲、膻中、内关等穴位"
+            ],
+            color: '#3949AB'
+        },
+        '特禀质': {
+            desc: "先天失常，以生理缺陷、过敏反应等为主要特征。",
+            advice: [
+                "避免接触过敏原，如花粉、尘螨、某些食物",
+                "饮食清淡均衡，避免辛辣、海鲜等发物",
+                "适度运动增强体质，如游泳、瑜伽",
+                "保持室内清洁，减少过敏原"
+            ],
+            color: '#00ACC1'
+        }
+    };
+
+    // 优化版问题数据（简化专业术语，增加性别筛选）
+    const baseQuestions = [
+        // 平和质
+        { text: "您精力充沛吗？", type: "平和质", score: 1 },
+        { text: "您容易疲劳吗？", type: "平和质", score: -1 }, // 反向计分
+        { text: "您睡眠质量好吗？", type: "平和质", score: 1 },
+        { text: "您平时很少生病吗？", type: "平和质", score: 1 },
+        { text: "您面色看起来红润有光泽吗？", type: "平和质", score: 1 },
+        
+        // 阳虚质
+        { text: "您手脚经常发凉吗？", type: "阳虚质", score: 1 },
+        { text: "您比一般人更怕冷吗？", type: "阳虚质", score: 1 },
+        { text: "您喜欢喝热饮胜过冷饮吗？", type: "阳虚质", score: 1 },
+        { text: "您的大便经常稀软不成形吗？", type: "阳虚质", score: 1 },
+        { text: "您性格内向、喜静少动吗？", type: "阳虚质", score: 1 },
+        
+        // 阴虚质
+        { text: "您经常感到口干咽燥吗？", type: "阴虚质", score: 1 },
+        { text: "您手足心容易发热吗？", type: "阴虚质", score: 1 },
+        { text: "您的皮肤容易干燥吗？", type: "阴虚质", score: 1 },
+        { text: "您的大便是否比较干燥？", type: "阴虚质", score: 1 },
+        { text: "您是否经常感到眼睛干涩？", type: "阴虚质", score: 1 },
+        
+        // 气虚质
+        { text: "您容易感到气短乏力吗？", type: "气虚质", score: 1 },
+        { text: "您比别人更容易感冒吗？", type: "气虚质", score: 1 },
+        { text: "您说话声音是否比较低弱？", type: "气虚质", score: 1 },
+        { text: "您稍微活动一下就容易出汗吗？", type: "气虚质", score: 1 },
+        { text: "您的肌肉看起来松软不实吗？", type: "气虚质", score: 1 },
+        
+        // 痰湿质
+        { text: "您的体型是否偏胖？", type: "痰湿质", score: 1 },
+        { text: "您的腹部是否肥满松软？", type: "痰湿质", score: 1 },
+        { text: "您是否经常感到身体沉重不轻松？", type: "痰湿质", score: 1 },
+        { text: "您的口中是否经常有黏腻感？", type: "痰湿质", score: 1 },
+        { text: "您的大便是否黏滞不爽？", type: "痰湿质", score: 1 },
+        
+        // 湿热质
+        { text: "您的面部是否容易油光发亮？", type: "湿热质", score: 1 },
+        { text: "您是否容易生痤疮或粉刺？", type: "湿热质", score: 1 },
+        { text: "您是否经常感到口苦或嘴里有异味？", type: "湿热质", score: 1 },
+        { text: "您的小便是否颜色偏黄？", type: "湿热质", score: 1 },
+        { text: "您的皮肤是否容易瘙痒？", type: "湿热质", score: 1 },
+        
+        // 血瘀质
+        { text: "您的皮肤是否容易出现瘀斑？", type: "血瘀质", score: 1 },
+        { text: "您的面色看起来是否比较晦暗？", type: "血瘀质", score: 1 },
+        { text: "您的口唇颜色是否偏暗？", type: "血瘀质", score: 1 },
+        { text: "您是否容易忘事？", type: "血瘀质", score: 1 },
+        { text: "您是否有痛经或月经有血块的情况？（女性）", type: "血瘀质", score: 1, gender: "female" },
+        
+        // 气郁质
+        { text: "您是否经常闷闷不乐？", type: "气郁质", score: 1 },
+        { text: "您是否容易精神紧张？", type: "气郁质", score: 1 },
+        { text: "您是否多愁善感、感情脆弱？", type: "气郁质", score: 1 },
+        { text: "您是否容易失眠？", type: "气郁质", score: 1 },
+        { text: "您是否经常叹气？", type: "气郁质", score: 1 },
+        
+        // 特禀质
+        { text: "您是否有花粉、食物、药物过敏史？", type: "特禀质", score: 1 },
+        { text: "您的皮肤是否容易过敏？", type: "特禀质", score: 1 },
+        { text: "您是否容易打喷嚏、流鼻涕？", type: "特禀质", score: 1 },
+        { text: "您是否有哮喘病史？", type: "特禀质", score: 1 },
+        { text: "您对季节变化是否比较敏感？", type: "特禀质", score: 1 }
+    ];
+
+    // 选项
+    const options = [
+        { text: "从不", value: 0 },
+        { text: "很少", value: 1 },
+        { text: "有时", value: 2 },
+        { text: "经常", value: 3 },
+        { text: "总是", value: 4 }
+    ];
+
+    // 全局变量
+    let currentQuestionIndex = 0;
+    let filteredQuestions = [];
+    const answers = {};
+    const scores = {
+        '平和质': 0,
+        '阳虚质': 0,
+        '阴虚质': 0,
+        '气虚质': 0,
+        '痰湿质': 0,
+        '湿热质': 0,
+        '血瘀质': 0,
+        '气郁质': 0,
+        '特禀质': 0
+    };
+
+    // DOM元素
+    const introEl = document.getElementById('intro');
+    const questionnaireEl = document.getElementById('questionnaire');
+    const resultEl = document.getElementById('result');
+    const startBtn = document.getElementById('startBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const questionTextEl = document.getElementById('questionText');
+    const optionsEl = document.getElementById('options');
+    const currentQuestionEl = document.getElementById('currentQuestion');
+    const totalQuestionsEl = document.getElementById('totalQuestions');
+
+    // 事件监听
+    startBtn.addEventListener('click', startQuestionnaire);
+    prevBtn.addEventListener('click', goToPrevQuestion);
+    nextBtn.addEventListener('click', goToNextQuestion);
+    submitBtn.addEventListener('click', showResult);
+    restartBtn.addEventListener('click', restart);
+
+    // 开始问卷
+    function startQuestionnaire() {
+        // 根据性别筛选问题
+        const gender = document.querySelector('input[name="gender"]:checked').value;
+        filteredQuestions = baseQuestions.filter(question => {
+            // 如果问题有性别限制且与用户性别不符，则过滤掉
+            return !question.gender || question.gender === gender;
+        });
+        
+        // 更新总题数显示
+        totalQuestionsEl.textContent = filteredQuestions.length;
+        
+        introEl.classList.add('hidden');
+        questionnaireEl.classList.remove('hidden');
+        showQuestion(currentQuestionIndex);
+    }
+
+    // 显示问题
+    function showQuestion(index) {
+        const question = filteredQuestions[index];
+        questionTextEl.textContent = question.text;
+        currentQuestionEl.textContent = index + 1;
+        
+        // 清空选项
+        optionsEl.innerHTML = '';
+        
+        // 添加选项
+        options.forEach(option => {
+            const button = document.createElement('button');
+            button.className = `border border-secondary py-3 px-4 rounded-md hover:bg-light transition-all mb-2 block w-full text-left ${answers[index] === option.value ? 'bg-primary text-white border-primary' : ''}`;
+            button.innerHTML = `<i class="fa ${answers[index] === option.value ? 'fa-check-circle-o' : 'fa-circle-o'} mr-2"></i>${option.text}`;
+            button.addEventListener('click', () => {
+                // 记录答案
+                answers[index] = option.value;
+                
+                // 更新选中状态
+                document.querySelectorAll('#options button').forEach(btn => {
+                    btn.classList.remove('bg-primary', 'text-white', 'border-primary');
+                    btn.innerHTML = btn.innerHTML.replace('fa-check-circle-o', 'fa-circle-o');
+                });
+                button.classList.add('bg-primary', 'text-white', 'border-primary');
+                button.innerHTML = button.innerHTML.replace('fa-circle-o', 'fa-check-circle-o');
+            });
+            optionsEl.appendChild(button);
+        });
+        
+        // 更新按钮状态
+        prevBtn.classList.toggle('hidden', index === 0);
+        if (index === filteredQuestions.length - 1) {
+            nextBtn.classList.add('hidden');
+            submitBtn.classList.remove('hidden');
+        } else {
+            nextBtn.classList.remove('hidden');
+            submitBtn.classList.add('hidden');
+        }
+    }
+
+    // 上一题
+    function goToPrevQuestion() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            showQuestion(currentQuestionIndex);
+        }
+    }
+
+    // 下一题
+    function goToNextQuestion() {
+        // 检查是否已回答
+        if (answers[currentQuestionIndex] === undefined) {
+            alert('请选择一个选项');
+            return;
+        }
+        
+        if (currentQuestionIndex < filteredQuestions.length - 1) {
+            currentQuestionIndex++;
+            showQuestion(currentQuestionIndex);
+        }
+    }
+
+    // 计算得分
+    function calculateScores() {
+        // 重置分数
+        Object.keys(scores).forEach(key => {
+            scores[key] = 0;
+        });
+        
+        // 计算各体质得分
+        filteredQuestions.forEach((question, index) => {
+            if (answers[index] !== undefined) {
+                scores[question.type] += answers[index] * question.score;
+            }
+        });
+        
+        // 平和质特殊处理（需要反向计分）
+        if (scores['平和质'] > 0) {
+            scores['平和质'] = 24 - scores['平和质']; // 反向计分
+        }
+        
+        // 归一化处理
+        Object.keys(scores).forEach(key => {
+            let maxPossibleScore = filteredQuestions.filter(q => q.type === key).length * 4;
+            scores[key] = Math.round((scores[key] / maxPossibleScore) * 100);
+            scores[key] = Math.max(0, Math.min(100, scores[key]));
+        });
+        
+        return scores;
+    }
+
+    // 显示结果
+    function showResult() {
+        // 检查是否所有问题都已回答
+        for (let i = 0; i < filteredQuestions.length; i++) {
+            if (answers[i] === undefined) {
+                alert('请回答所有问题');
+                return;
+            }
+        }
+        
+        // 计算得分
+        const scores = calculateScores();
+        
+        // 找出最高得分的体质
+        let maxScore = -1;
+        let mainType = '';
+        
+        Object.keys(scores).forEach(type => {
+            if (scores[type] > maxScore) {
+                maxScore = scores[type];
+                mainType = type;
+            }
+        });
+        
+        // 显示主要体质
+        document.getElementById('mainType').textContent = mainType;
+        document.getElementById('mainDesc').textContent = constitutionData[mainType].desc;
+        
+        // 显示主要体质的建议
+        const mainAdviceEl = document.getElementById('mainAdvice');
+        mainAdviceEl.innerHTML = '';
+        constitutionData[mainType].advice.forEach(advice => {
+            const li = document.createElement('li');
+            li.textContent = advice;
+            mainAdviceEl.appendChild(li);
+        });
+        
+        // 显示兼夹体质（得分超过30分的其他体质）
+        const secondaryTypesEl = document.getElementById('secondaryTypes');
+        secondaryTypesEl.innerHTML = '';
+        
+        Object.keys(scores).forEach(type => {
+            if (type !== mainType && scores[type] >= 30) {
+                const card = document.createElement('div');
+                card.className = `bg-light p-3 rounded border-l-4 border-${constitutionData[type].color.replace('#', '')} shadow-sm`;
+                card.innerHTML = `
+                    <h4 class="font-bold text-${constitutionData[type].color.replace('#', '')}">${type}（${scores[type]}分）</h4>
+                    <p class="text-sm">${constitutionData[type].desc}</p>
+                `;
+                secondaryTypesEl.appendChild(card);
+            }
+        });
+        
+        // 显示结果部分
+        questionnaireEl.classList.add('hidden');
+        resultEl.classList.remove('hidden');
+    }
+
+    // 重新测试
+    function restart() {
+        // 重置状态
+        currentQuestionIndex = 0;
+        filteredQuestions = [];
+        Object.keys(answers).forEach(key => delete answers[key]);
+        
+        // 隐藏结果，显示介绍
+        resultEl.classList.add('hidden');
+        introEl.classList.remove('hidden');
+    }
+</script>
+</html>
